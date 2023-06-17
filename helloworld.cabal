@@ -36,6 +36,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , http-types
+    , parsec
     , wai
     , warp
   default-language: Haskell2010
@@ -53,6 +54,7 @@ executable helloworld-exe
     , bytestring
     , helloworld
     , http-types
+    , parsec
     , wai
     , warp
   default-language: Haskell2010
@@ -71,6 +73,7 @@ test-suite helloworld-test
     , bytestring
     , helloworld
     , http-types
+    , parsec
     , wai
     , warp
   default-language: Haskell2010
