@@ -41,50 +41,29 @@ data Expr = Plus Expr Expr
 -- parser
 ----------------------------
 
-spacesAround :: Parser a -> Parser a
-spacesAround p = spaces *> p <* spaces
-
 parseExpr :: Parser Expr
-parseExpr = parseSumDifference <|> parseTerm
+parseExpr = spaces *> parseSumDifference <* spaces
 
 parseSumDifference :: Parser Expr
-parseSumDifference = do
-    term <- parseTerm
-    parseSum term <|> parseDifference term <|> return term
+parseSumDifference = parseMulDiv `chainl1` (plus <|> minus)
+  where
+    plus  = Plus  <$ spacesAround (char '+')
+    minus = Minus <$ spacesAround (char '-')
 
-parseConst :: Parser Expr
-parseConst = Const . read <$> many1 digit
+parseMulDiv :: Parser Expr
+parseMulDiv = parseFactor `chainl1` (times <|> divide)
+  where
+    times  = Times <$ spacesAround (char '*')
+    divide = Div   <$ spacesAround (char '/')
 
 parseFactor :: Parser Expr
-parseFactor = between (char '(') (char ')') parseExpr <|> parseConst
+parseFactor = between (char '(' <* spaces) (char ')' <* spaces) parseExpr <|> parseConst
 
-parseSum :: Expr -> Parser Expr
-parseSum term = do
-    _ <- spacesAround (char '+')
-    Plus term <$> parseExpr
+parseConst :: Parser Expr
+parseConst = Const . read <$> many1 digit <* spaces
 
-parseDifference :: Expr -> Parser Expr
-parseDifference term = do
-    _ <- spacesAround (char '-')
-    Minus term <$> parseExpr
-
-parseTerm :: Parser Expr
-parseTerm = parseProductDivision <|> parseFactor
-
-parseProductDivision :: Parser Expr
-parseProductDivision = do
-    factor <- parseFactor
-    parseProduct factor <|> parseDivision factor <|> return factor
-
-parseProduct :: Expr -> Parser Expr
-parseProduct factor = do
-    _ <- spacesAround (char '*')
-    Times factor <$> parseTerm
-
-parseDivision :: Expr -> Parser Expr
-parseDivision factor = do
-    _ <- spacesAround (char '/')
-    Div factor <$> parseTerm
+spacesAround :: Parser a -> Parser a
+spacesAround p = spaces *> p <* spaces
 
 ----------------------------
 -- calculations
